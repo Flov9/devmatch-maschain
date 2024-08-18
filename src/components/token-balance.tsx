@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+
 import {
   Dialog,
   DialogTrigger,
@@ -31,10 +33,35 @@ import {
   CardContent,
   CardFooter,
 } from "./ui/card";
+import BodyCheckup from "./body-checkup";
 
 const TokenBalance = () => {
   const walletAddress = sessionStorage.getItem("walletAddress");
   const [tokenBalance, setTokenBalance] = useState("");
+  const [selectedHospital, setSelectedHospital] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [showBodyCheckup, setShowBodyCheckup] = useState(false);
+  const [date, setDate] = React.useState<Date>();
+
+  const handleSelectChange = (
+    value: React.SetStateAction<string>,
+    type: string
+  ) => {
+    switch (type) {
+      case "hospital":
+        setSelectedHospital(value);
+        break;
+      case "date":
+        setSelectedDate(value);
+        break;
+      case "time":
+        setSelectedTime(value);
+        break;
+      default:
+        break;
+    }
+  };
 
   useEffect(() => {
     const fetchTokenBalance = async () => {
@@ -50,9 +77,7 @@ const TokenBalance = () => {
             },
             body: JSON.stringify({
               wallet_address: walletAddress,
-              contract_address: String(
-                process.env.TOKEN_SERVICE_SMART_CONTRACT_ADDRESS
-              ),
+              contract_address: "0x21f7fb0AB36A3a3A4ddC77Ca3f3802Fa6007D1f5",
             }),
           }
         );
@@ -74,86 +99,119 @@ const TokenBalance = () => {
   }, [walletAddress]);
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Token Balance</CardTitle>
-      </CardHeader>
-      <CardContent className="flex items-center justify-center gap-4">
-        <WalletIcon className="h-8 w-8 text-primary" />
-        <div className="text-4xl font-bold">{tokenBalance}</div>
-      </CardContent>
-      <CardFooter>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-full">Redeem Body Checkup</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Redeem Body Checkup</DialogTitle>
-              <DialogDescription>
-                Select a hospital and schedule your appointment.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="hospital">Hospital</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select hospital" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hospital1">
-                      Hospital 1 - Downtown
-                    </SelectItem>
-                    <SelectItem value="hospital2">
-                      Hospital 2 - Uptown
-                    </SelectItem>
-                    <SelectItem value="hospital3">
-                      Hospital 3 - Midtown
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+    <>
+      {showBodyCheckup && (
+        <BodyCheckup
+          selectedHospital={selectedHospital}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+        />
+      )}
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>VTL Token Balance</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center gap-4">
+          <WalletIcon className="h-8 w-8 text-primary" />
+          <div className="text-4xl font-bold">{tokenBalance}</div>
+        </CardContent>
+        <CardFooter>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-full">Redeem Body Checkup</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Redeem Body Checkup</DialogTitle>
+                <DialogDescription>
+                  Select a hospital and schedule your appointment.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-6">
+                <div className="grid gap-2">
+                  <Label htmlFor="hospital">Hospital</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      handleSelectChange(value, "hospital")
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select hospital" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hospital1">
+                        Hospital 1 - Downtown
+                      </SelectItem>
+                      <SelectItem value="hospital2">
+                        Hospital 2 - Uptown
+                      </SelectItem>
+                      <SelectItem value="hospital3">
+                        Hospital 3 - Midtown
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="justify-start">
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="time">Time</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      handleSelectChange(value, "hospital")
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="9am">9:00 AM</SelectItem>
+                      <SelectItem value="10am">10:00 AM</SelectItem>
+                      <SelectItem value="11am">11:00 AM</SelectItem>
+                      <SelectItem value="12pm">12:00 PM</SelectItem>
+                      <SelectItem value="1pm">1:00 PM</SelectItem>
+                      <SelectItem value="2pm">2:00 PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="date">Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start">
-                      <span>Select date</span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0">
-                    <Calendar />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="time">Time</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="9am">9:00 AM</SelectItem>
-                    <SelectItem value="10am">10:00 AM</SelectItem>
-                    <SelectItem value="11am">11:00 AM</SelectItem>
-                    <SelectItem value="12pm">12:00 PM</SelectItem>
-                    <SelectItem value="1pm">1:00 PM</SelectItem>
-                    <SelectItem value="2pm">2:00 PM</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <div>
-                <Button variant="ghost">Cancel</Button>
-              </div>
-              <Button>Redeem</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </CardFooter>
-    </Card>
+              <DialogFooter>
+                <div>
+                  <Button variant="ghost">Cancel</Button>
+                </div>
+                <DialogClose>
+                  <Button
+                    type="submit"
+                    onClick={() => {
+                      handleSelectChange(selectedHospital, "hospital");
+                      handleSelectChange(selectedDate, "date");
+                      handleSelectChange(selectedTime, "time");
+                      setShowBodyCheckup(true);
+                    }}
+                  >
+                    Redeem
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardFooter>
+      </Card>
+    </>
   );
 };
 
